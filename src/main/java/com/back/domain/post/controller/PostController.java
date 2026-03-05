@@ -2,14 +2,18 @@ package com.back.domain.post.controller;
 
 import com.back.domain.post.entity.Post;
 import com.back.domain.post.service.PostService;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequiredArgsConstructor
+@Validated
 public class PostController {
 
     private final PostService postService;
@@ -18,38 +22,31 @@ public class PostController {
     @ResponseBody
     public String writeForm() {
 
-        return getWriteForm("", "", "");
+        return getWriteForm("", "", "", "");
     }
 
     @PostMapping("/posts/write")
     @ResponseBody
-    public String write(String title, String content) {
+    public String write(
+            @Size(min=2, max=10)
+            @NotBlank
+            String title,
 
-        // 유효성 체크
-        if(title.isBlank()) {
-            return """
-                    <div style="color:red">제목을 입력해주세요.</div>
-                    %s
-                    """.formatted(getWriteForm(title, content, "title"));
-        }
-
-        if(content.isBlank()) {
-            return """
-                    <div style="color:red">내용을 입력해주세요.</div>
-                    %s
-                    """.formatted(getWriteForm(title, content, "content"));
-        }
-        //
+            @NotBlank
+            @Size(min=2, max=100)
+            String content) {
 
         Post post = postService.write(title, content);
 
         return "%d번 글이 작성되었습니다.".formatted(post.getId());
     }
 
-    private String getWriteForm(String title, String content, String errorFieldName) {
+    private String getWriteForm(String errorMessage, String title, String content, String errorFieldName) {
         return """
+                <div style="color:red">%s</div>
                 <form method="post" action="/posts/write">
-                <input type="text" name="title" value="%s" autoFocus>                  <br>
+                  <input type="text" name="title" value="%s" autoFocus>
+                  <br>
                   <textarea name="content">%s</textarea>
                   <br>
                   <input type="submit" value="작성">
@@ -57,12 +54,13 @@ public class PostController {
                 
                 <script>
                     const errorFieldName = "%s";
+                
                     if(errorFieldName.length > 0) {
                         const form = document.querySelector("form");
                         form[errorFieldName].focus();
                     }
                 </script>
-                """.formatted(title, content, errorFieldName);
+                """.formatted(errorMessage, title, content, errorFieldName);
     }
 
 }
