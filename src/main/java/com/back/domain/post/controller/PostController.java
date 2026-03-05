@@ -2,18 +2,18 @@ package com.back.domain.post.controller;
 
 import com.back.domain.post.entity.Post;
 import com.back.domain.post.service.PostService;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequiredArgsConstructor
-@Validated
 public class PostController {
 
     private final PostService postService;
@@ -25,18 +25,22 @@ public class PostController {
         return getWriteForm("", "", "", "");
     }
 
+    @AllArgsConstructor
+    public static class WriteRequestForm {
+        @Size(min=2, max=10)
+        @NotBlank
+        private String title;
+
+        @NotBlank
+        @Size(min=2, max=100)
+        private String content;
+    }
+
     @PostMapping("/posts/write")
     @ResponseBody
-    public String write(
-            @Size(min=2, max=10)
-            @NotBlank
-            String title,
+    public String write(@Valid WriteRequestForm form) {
 
-            @NotBlank
-            @Size(min=2, max=100)
-            String content) {
-
-        Post post = postService.write(title, content);
+        Post post = postService.write(form.title, form.content);
 
         return "%d번 글이 작성되었습니다.".formatted(post.getId());
     }
