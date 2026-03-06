@@ -1,6 +1,6 @@
 spring:
   application:
-    name: p-23-260303
+    name: p-24-260305
 
   profiles:
     active: dev
@@ -8,6 +8,10 @@ spring:
   output:
     ansi:
       enabled: always
+
+  thymeleaf:
+    cache: false
+    prefix: file:src/main/resources/templates/
 
   jpa:
     properties:
