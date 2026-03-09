@@ -1,7 +1,7 @@
-package com.back.domain.post.controller;
+package com.back.domain.post.post.controller;
 
-import com.back.domain.post.entity.Post;
-import com.back.domain.post.service.PostService;
+import com.back.domain.post.post.entity.Post;
+import com.back.domain.post.post.service.PostService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -9,12 +9,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequiredArgsConstructor
@@ -35,6 +33,7 @@ public class PostController {
     }
 
     @GetMapping("/posts/write")
+    @Transactional(readOnly = true)
     public String writeForm(@ModelAttribute("form") WriteRequestForm form) {
         return "write";
     }
@@ -65,11 +64,19 @@ public class PostController {
     }
 
     @GetMapping("/posts/{id}/modify")
-    public String modifyForm(@ModelAttribute("form") WriteRequestForm form) {
+    @Transactional(readOnly = true)
+    public String modifyForm(@PathVariable int id, @ModelAttribute("form") ModifyRequestForm form) {
+
+        Post post = postService.findById(id).get();
+
+        form.title = post.getTitle();
+        form.content = post.getContent();
+
         return "modify";
     }
 
     @PostMapping("/posts/{id}/modify")
+    @Transactional
     public String modify(@PathVariable int id,
                          @Valid @ModelAttribute("form") ModifyRequestForm form,
                          BindingResult bindingResult) {
@@ -84,6 +91,7 @@ public class PostController {
 
 
     @GetMapping("/posts")
+    @Transactional(readOnly = true)
     public String list(Model model) {
 
         model.addAttribute("posts", postService.findAll());
@@ -91,6 +99,7 @@ public class PostController {
     }
 
     @GetMapping("/posts/{id}")
+    @Transactional(readOnly = true)
     public String detail(@PathVariable int id, Model model) {
         Post post = postService.findById(id).get();
         model.addAttribute("post", post);
